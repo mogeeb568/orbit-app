@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit ULTRA PRO MAX</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .primary-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            font-weight: bold;
+        }
+
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem auto;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .highlight {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+            display: block;
+            margin: 1rem 0;
+        }
+
+        .task-list {
+            list-style: none;
+            max-width: 500px;
+            margin: 1rem auto;
+        }
+
+        .task-list li {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .task-list li:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(10px);
+        }
+
+        .task-points {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        #level-progress {
+            height: 100%;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            transition: width 0.3s ease;
+        }
+
+        #user-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .ref-code {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Orbit ULTRA PRO MAX</h1>
+    
+    <nav>
+        <button onclick="showPage('dashboard')">🏠 الرئيسية</button>
+        <button onclick="showPage('tasks')">📋 المهام</button>
+        <button onclick="showPage('wallet')">💰 المحفظة</button>
+        <button onclick="showPage('referral')">👥 الإحالة</button>
+        <button onclick="showPage('levels')">📈 المستويات</button>
+    </nav>
+
+    <!-- الصفحة الرئيسية -->
+    <div id="dashboard" class="page active">
+        <div class="card">
+            <h2>لوحة التحكم</h2>
+            <button onclick="loginWithPi()" class="primary-btn">🔐 تسجيل الدخول بـ Pi</button>
+            
+            <div id="user-info" style="display: none;">
+                <p>👤 مرحباً: <span id="username"></span></p>
+                <p>⭐ النقاط: <span id="points" class="highlight">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- صفحة المهام -->
+    <div id="tasks" class="page">
+        <div class="card">
+            <h2>📋 المهام اليومية</h2>
+            <ul id="task-list" class="task-list"></ul>
+        </div>
+    </div>
+
+    <!-- صفحة المحفظة -->
+    <div id="wallet" class="page">
+        <div class="card">
+            <h2>💰 المحفظة</h2>
+            <p>الرصيد الحالي:</p>
+            <span id="balance" class="highlight">0</span>
+            <p>نقطة</p>
+            <button onclick="withdrawPoints()" class="primary-btn" style="margin-top: 20px;">سحب النقاط</button>
+        </div>
+    </div>
+
+    <!-- صفحة الإحالة -->
+    <div id="referral" class="page">
+        <div class="card">
+            <h2>👥 الإحالة</h2>
+            <p>كود الإحالة الخاص بك:</p>
+            <div id="ref-code" class="ref-code">ORBIT-XXXX</div>
+            <button onclick="copyRefCode()">📋 نسخ الكود</button>
+            <p style="margin-top: 20px;">أرباح الإحالة: <span id="ref-earnings">0</span> نقطة</p>
+        </div>
+    </div>
+
+    <!-- صفحة المستويات -->
+    <div id="levels" class="page">
+        <div class="card">
+            <h2>📈 المستويات</h2>
+            <p>المستوى الحالي: <span id="level" class="highlight">1</span></p>
+            <div class="progress-bar">
+                <div id="level-progress" style="width: 0%;"></div>
+            </div>
+            <p>المستوى التالي: <span id="next-level">2</span> (100 نقطة)</p>
+        </div>
+    </div>
+
+    <script>
+        // ========== المتغيرات العامة ==========
+        let points = parseInt(localStorage.getItem('points')) || 0;
+        let user = null;
+        let refCode = localStorage.getItem('refCode') || generateRefCode();
+
+        // ========== دوال التنقل ==========
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // تحديث البيانات حسب الصفحة
+            if (pageId === 'tasks') loadTasks();
+            if (pageId === 'levels') updateLevel();
+        }
+
+        // ========== دوال Pi SDK ==========
+        function initPi() {
+            if (typeof Pi !== 'undefined') {
+                Pi.init({ version: "2.0", sandbox: true });
+                console.log('✅ Pi SDK initialized');
+            } else {
+                console.log('⚠️ Pi SDK not loaded');
+            }
+        }
+
+        async function loginWithPi() {
+            try {
+                if (typeof Pi === 'undefined') {
+                    alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
+                    return;
+                }
+
+                initPi();
+                
+                const auth = await Pi.authenticate(['username', 'payments'], function(payment) {
+                    console.log('Payment ready:', payment);
+                });
+
+                user = auth.user;
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('username').textContent = user.username;
+                
+                updatePointsDisplay();
+                alert('✅ مرحباً ' + user.username);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('❌ خطأ في تسجيل الدخول: ' + error.message);
+            }
+        }
+
+        // ========== دوال النقاط ==========
+        function addPoints(amount) {
+            points += amount;
+            localStorage.setItem('points', points);
+            updatePointsDisplay();
+            updateLevel();
+            
+            // رسالة نجاح
+            showNotification(`✅ +${amount} نقطة`);
+        }
+
+        function updatePointsDisplay() {
+            document.getElementById('points').textContent = points;
+            document.getElementById('balance').textContent = points;
+        }
+
+        // ========== دوال المهام ==========
+        const tasks = [
+            { id: 1, name: "تسجيل الدخول اليومي", points: 5 },
+            { id: 2, name: "إكمال 3 مهام", points: 10 },
+            { id: 3, name: "دعوة صديق", points: 15 },
+            { id: 4, name: "مشاركة التطبيق", points: 5 },
+            { id: 5, name: "تسجيل الدخول بـ Pi", points: 20 }
+        ];
+
+        function loadTasks() {
+            const taskList = document.getElementById('task-list');
+            if (!taskList) return;
+
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${task.name}</span>
+                    <span class="task-points">+${task.points}</span>
+                `;
+                li.onclick = () => completeTask(task);
+                taskList.appendChild(li);
+            });
+        }
+
+        function completeTask(task) {
+            addPoints(task.points);
+        }
+
+        // ========== دوال المستويات ==========
+        function updateLevel() {
+            const level = Math.floor(points / 100) + 1;
+            const nextLevelPoints = (level * 100);
+            const progress = (points % 100);
+            
+            document.getElementById('level').textContent = level;
+            document.getElementById('next-level').textContent = level + 1;
+            document.getElementById('level-progress').style.width = progress + '%';
+        }
+
+        // ========== دوال الإحالة ==========
+        function generateRefCode() {
+            const code = 'ORBIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            localStorage.setItem('refCode', code);
+            return code;
+        }
+
+        function copyRefCode() {
+            navigator.clipboard.writeText(refCode).then(() => {
+                alert('✅ تم نسخ الكود');
+            }).catch(() => {
+                alert('📋 الكود: ' + refCode);
+            });
+        }
+
+        // ========== دوال المحفظة ==========
+        function withdrawPoints() {
+            if (points <= 0) {
+                alert('❌ لا يوجد نقاط للسحب');
+                return;
+            }
+
+            if (confirm(`هل تريد سحب ${points} نقطة؟`)) {
+                alert('💰 تم إرسال طلب السحب. سيتم مراجعته قريباً.');
+                // هنا نضيف منطق السحب الحقيقي لاحقاً
+            }
+        }
+
+        // ========== دوال مساعدة ==========
+        function showNotification(message) {
+            // يمكن تحسين هذه الدالة لعرض إشعارات أجمل
+            console.log(message);
+        }
+
+        // ========== تهيئة التطبيق ==========
+        window.onload = function() {
+            console.log('✅ التطبيق بدأ');
+            initPi();
+            updatePointsDisplay();
+            document.getElementById('ref-code').textContent = refCode;
+            loadTasks();
+        };
+
+        // تصدير الدوال للاستخدام العام
+        window.showPage = showPage;
+        window.loginWithPi = loginWithPi;
+        window.withdrawPoints = withdrawPoints;
+        window.copyRefCode = copyRefCode;
+    </script>
+</body>
+</html>
