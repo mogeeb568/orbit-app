@@ -56,5 +56,49 @@ window.addPoints = addPoints;
 Pi.init({ 
     version: "2.0", 
     sandbox: true,
-    apiKey: "tadyeatucrl016u94vrkhq3rw2e44ogynghm7ziaicbjn1zngkx0e1mkcwbmflpg" // 
-});
+    apiKey: "ohrbeexmlhogtkfn2yuw2o8znsdyrwxuexzgbeuimzeojuhqipzogzdpjmvn0zbr" // 
+})
+// دالة الدفع التجريبي
+async function makeTestPayment() {
+    try {
+        // التحقق من تسجيل الدخول
+        if (!user) {
+            alert('❌ يجب تسجيل الدخول أولاً');
+            return;
+        }
+
+        // بيانات الدفع
+        const paymentData = {
+            amount: 1, // 1 Test-Pi
+            memo: "معاملة تجريبية من تطبيق Orbit",
+            metadata: { test: true }
+        };
+
+        // إنشاء عملية الدفع
+        const payment = await Pi.createPayment(paymentData, {
+            onReadyForServerApproval: (paymentId) => {
+                console.log('جاري الموافقة على الدفع:', paymentId);
+            },
+            onReadyForServerCompletion: (paymentId, txid) => {
+                console.log('تم الدفع بنجاح:', paymentId, txid);
+                alert('✅ تم الدفع التجريبي بنجاح!');
+                // يمكنك هنا إضافة نقاط للمستخدم كمكافأة
+                addPoints(10);
+            },
+            onCancel: () => {
+                alert('❌ تم إلغاء الدفع');
+            },
+            onError: (error) => {
+                console.error('خطأ في الدفع:', error);
+                alert('❌ فشل الدفع: ' + error.message);
+            }
+        });
+
+    } catch (error) {
+        console.error('خطأ:', error);
+        alert('❌ خطأ: ' + error.message);
+    }
+}
+
+// جعل الدالة متاحة للاستخدام
+window.makeTestPayment = makeTestPayment;
