@@ -16,22 +16,19 @@ function initPi() {
     }
 }
 
-// تهيئة عند تحميل الصفحة
 initPi();
 
-// ========== دوال التنقل ==========
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
 }
 
-// ========== دوال تسجيل الدخول ==========
 async function loginWithPi() {
     try {
         console.log("محاولة تسجيل الدخول...");
         
         if (typeof Pi === 'undefined') {
-            alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
+            alert('❌ Pi SDK غير متوفر.');
             return;
         }
 
@@ -54,7 +51,6 @@ async function loginWithPi() {
     }
 }
 
-// ========== دوال النقاط ==========
 function addPoints(amount) {
     points += amount;
     localStorage.setItem('points', points);
@@ -68,7 +64,6 @@ function updatePointsDisplay() {
     document.getElementById('balance').textContent = points;
 }
 
-// ========== دوال المهام ==========
 const tasks = [
     { id: 1, name: "تسجيل الدخول اليومي", points: 5 },
     { id: 2, name: "إكمال 3 مهام", points: 10 },
@@ -97,7 +92,6 @@ function completeTask(task) {
     addPoints(task.points);
 }
 
-// ========== دوال المستويات ==========
 function updateLevel() {
     const level = Math.floor(points / 100) + 1;
     const progress = (points % 100);
@@ -107,7 +101,6 @@ function updateLevel() {
     document.getElementById('level-progress').style.width = progress + '%';
 }
 
-// ========== دوال الإحالة ==========
 function generateRefCode() {
     const code = 'ORBIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     localStorage.setItem('refCode', code);
@@ -128,18 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refElement) refElement.textContent = refCode;
 });
 
-// ========== دوال المحفظة ==========
 function withdrawPoints() {
     if (points <= 0) {
         alert('❌ لا يوجد نقاط للسحب');
         return;
     }
     if (confirm(`هل تريد سحب ${points} نقطة؟`)) {
-        alert('💰 تم إرسال طلب السحب. سيتم مراجعته قريباً.');
+        alert('💰 تم إرسال طلب السحب.');
     }
 }
 
-// ========== دالة الدفع التجريبي ==========
 async function makeTestPayment() {
     try {
         console.log("بدء عملية الدفع...");
@@ -161,7 +152,7 @@ async function makeTestPayment() {
 
         const paymentData = {
             amount: 0.1,
-            memo: "معاملة تجريبية من Orbit App",
+            memo: "معاملة تجريبية",
             metadata: { user: user.username }
         };
 
@@ -170,30 +161,26 @@ async function makeTestPayment() {
                 console.log('✅ جاهز للموافقة:', paymentId);
                 alert('⏳ جاري الموافقة...');
             },
-            
             onReadyForServerCompletion: (paymentId, txid) => {
                 console.log('✅ تم الدفع:', paymentId, txid);
                 alert('🎉 تم الدفع التجريبي بنجاح!');
                 addPoints(20);
             },
-            
             onCancel: () => {
                 alert('❌ تم إلغاء الدفع');
             },
-            
             onError: (error) => {
                 console.error('❌ خطأ في الدفع:', error);
-                alert('❌ فشل الدفع: ' + (error.message || 'خطأ غير معروف'));
+                alert('❌ فشل الدفع');
             }
         });
 
     } catch (error) {
         console.error('❌ خطأ في الدفع:', error);
-        alert('❌ حدث خطأ: ' + error.message);
+        alert('❌ حدث خطأ');
     }
 }
 
-// ========== التهيئة عند تحميل الصفحة ==========
 window.onload = function() {
     console.log('✅ التطبيق بدأ');
     updatePointsDisplay();
@@ -202,7 +189,6 @@ window.onload = function() {
     document.getElementById('ref-code').textContent = refCode;
 };
 
-// ========== تصدير الدوال للاستخدام العام ==========
 window.showPage = showPage;
 window.loginWithPi = loginWithPi;
 window.withdrawPoints = withdrawPoints;
