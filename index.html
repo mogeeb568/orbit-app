@@ -186,7 +186,7 @@
         </div>
     </div>
 
-    <!-- صفحة المحفظة -->
+    <!-- صفحة المحفظة مع زر الدفع التجريبي -->
     <div id="wallet" class="page">
         <div class="card">
             <h2>💰 المحفظة</h2>
@@ -194,6 +194,9 @@
             <span id="balance" class="highlight">0</span>
             <p>نقطة</p>
             <button onclick="withdrawPoints()" class="primary-btn" style="margin-top: 20px;">سحب النقاط</button>
+            <button onclick="makeTestPayment()" style="background: #10b981; margin-top: 20px; padding: 10px 20px; border: none; border-radius: 5px; color: white; width: 100%;">
+                💰 ادفع 0.1 Test-Pi تجريبي
+            </button>
         </div>
     </div>
 
@@ -220,165 +223,6 @@
         </div>
     </div>
 
-    <script>
-        // ========== المتغيرات العامة ==========
-        let points = parseInt(localStorage.getItem('points')) || 0;
-        let user = null;
-        let refCode = localStorage.getItem('refCode') || generateRefCode();
-
-        // ========== دوال التنقل ==========
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            
-            // تحديث البيانات حسب الصفحة
-            if (pageId === 'tasks') loadTasks();
-            if (pageId === 'levels') updateLevel();
-        }
-
-        // ========== دوال Pi SDK ==========
-        function initPi() {
-            if (typeof Pi !== 'undefined') {
-                Pi.init({ version: "2.0", sandbox: true });
-                console.log('✅ Pi SDK initialized');
-            } else {
-                console.log('⚠️ Pi SDK not loaded');
-            }
-        }
-
-        async function loginWithPi() {
-            try {
-                if (typeof Pi === 'undefined') {
-                    alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
-                    return;
-                }
-
-                initPi();
-                
-                const auth = await Pi.authenticate(['username', 'payments'], function(payment) {
-                    console.log('Payment ready:', payment);
-                });
-
-                user = auth.user;
-                document.getElementById('user-info').style.display = 'block';
-                document.getElementById('username').textContent = user.username;
-                
-                updatePointsDisplay();
-                alert('✅ مرحباً ' + user.username);
-
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('❌ خطأ في تسجيل الدخول: ' + error.message);
-            }
-        }
-
-        // ========== دوال النقاط ==========
-        function addPoints(amount) {
-            points += amount;
-            localStorage.setItem('points', points);
-            updatePointsDisplay();
-            updateLevel();
-            
-            // رسالة نجاح
-            showNotification(`✅ +${amount} نقطة`);
-        }
-
-        function updatePointsDisplay() {
-            document.getElementById('points').textContent = points;
-            document.getElementById('balance').textContent = points;
-        }
-
-        // ========== دوال المهام ==========
-        const tasks = [
-            { id: 1, name: "تسجيل الدخول اليومي", points: 5 },
-            { id: 2, name: "إكمال 3 مهام", points: 10 },
-            { id: 3, name: "دعوة صديق", points: 15 },
-            { id: 4, name: "مشاركة التطبيق", points: 5 },
-            { id: 5, name: "تسجيل الدخول بـ Pi", points: 20 }
-        ];
-
-        function loadTasks() {
-            const taskList = document.getElementById('task-list');
-            if (!taskList) return;
-
-            taskList.innerHTML = '';
-            tasks.forEach(task => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${task.name}</span>
-                    <span class="task-points">+${task.points}</span>
-                `;
-                li.onclick = () => completeTask(task);
-                taskList.appendChild(li);
-            });
-        }
-
-        function completeTask(task) {
-            addPoints(task.points);
-        }
-
-        // ========== دوال المستويات ==========
-        function updateLevel() {
-            const level = Math.floor(points / 100) + 1;
-            const nextLevelPoints = (level * 100);
-            const progress = (points % 100);
-            
-            document.getElementById('level').textContent = level;
-            document.getElementById('next-level').textContent = level + 1;
-            document.getElementById('level-progress').style.width = progress + '%';
-        }
-
-        // ========== دوال الإحالة ==========
-        function generateRefCode() {
-            const code = 'ORBIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-            localStorage.setItem('refCode', code);
-            return code;
-        }
-
-        function copyRefCode() {
-            navigator.clipboard.writeText(refCode).then(() => {
-                alert('✅ تم نسخ الكود');
-            }).catch(() => {
-                alert('📋 الكود: ' + refCode);
-            });
-        }
-
-        // ========== دوال المحفظة ==========
-        function withdrawPoints() {
-            if (points <= 0) {
-                alert('❌ لا يوجد نقاط للسحب');
-                return;
-            }
-
-            if (confirm(`هل تريد سحب ${points} نقطة؟`)) {
-                alert('💰 تم إرسال طلب السحب. سيتم مراجعته قريباً.');
-                // هنا نضيف منطق السحب الحقيقي لاحقاً
-            }
-        }
-
-        // ========== دوال مساعدة ==========
-        function showNotification(message) {
-            // يمكن تحسين هذه الدالة لعرض إشعارات أجمل
-            console.log(message);
-        }
-
-        // ========== تهيئة التطبيق ==========
-        window.onload = function() {
-            console.log('✅ التطبيق بدأ');
-            initPi();
-            updatePointsDisplay();
-            document.getElementById('ref-code').textContent = refCode;
-            loadTasks();
-        };
-
-        // تصدير الدوال للاستخدام العام
-        window.showPage = showPage;
-        window.loginWithPi = loginWithPi;
-        window.withdrawPoints = withdrawPoints;
-        window.copyRefCode = copyRefCode;
-    </script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
-<button onclick="makeTestPayment()" style="background: #10b981; margin-top: 20px; padding: 10px 20px; border: none; border-radius: 5px; color: white;">
-    💰 ادفع 1 Test-Pi تجريبي
-</button>
