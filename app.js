@@ -28,6 +28,8 @@ function showPage(pageId) {
 // ========== دوال تسجيل الدخول ==========
 async function loginWithPi() {
     try {
+        console.log("محاولة تسجيل الدخول...");
+        
         if (typeof Pi === 'undefined') {
             alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
             return;
@@ -137,73 +139,57 @@ function withdrawPoints() {
     }
 }
 
-// ========== دالة الدفع التجريبي (الأهم) ==========
+// ========== دالة الدفع التجريبي ==========
 async function makeTestPayment() {
     try {
         console.log("بدء عملية الدفع...");
         
-        // التحقق من وجود Pi SDK
         if (typeof Pi === 'undefined') {
-            alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
+            alert('❌ Pi SDK غير متوفر.');
             return;
         }
 
-        // التحقق من تسجيل الدخول
         if (!user) {
-            alert('❌ يجب تسجيل الدخول أولاً. اضغط على "تسجيل الدخول بـ Pi"');
+            alert('❌ يجب تسجيل الدخول أولاً.');
             return;
         }
 
-        // التحقق من وجود دالة createPayment
         if (typeof Pi.createPayment !== 'function') {
-            alert('❌ نظام الدفع غير متاح حالياً. تأكد من إعداد API Key بشكل صحيح.');
+            alert('❌ نظام الدفع غير متاح.');
             return;
         }
 
-        // بيانات الدفع
         const paymentData = {
             amount: 0.1,
             memo: "معاملة تجريبية من Orbit App",
-            metadata: { 
-                app: "Orbit ULTRA PRO MAX",
-                user: user.username,
-                test: true 
-            }
+            metadata: { user: user.username }
         };
 
-        console.log("بيانات الدفع:", paymentData);
-
-        // إنشاء عملية الدفع
         const payment = await Pi.createPayment(paymentData, {
             onReadyForServerApproval: (paymentId) => {
-                console.log('✅ جاهز للموافقة - Payment ID:', paymentId);
-                alert('⏳ جاري الموافقة على الدفع...');
+                console.log('✅ جاهز للموافقة:', paymentId);
+                alert('⏳ جاري الموافقة...');
             },
             
             onReadyForServerCompletion: (paymentId, txid) => {
-                console.log('✅ تم الإكمال - Payment ID:', paymentId, 'TXID:', txid);
-                alert('🎉 تم الدفع التجريبي بنجاح! شكراً لك.');
-                
-                // مكافأة المستخدم بنقاط إضافية
+                console.log('✅ تم الدفع:', paymentId, txid);
+                alert('🎉 تم الدفع التجريبي بنجاح!');
                 addPoints(20);
             },
             
-            onCancel: (paymentId) => {
-                console.log('❌ تم الإلغاء - Payment ID:', paymentId);
-                alert('❌ تم إلغاء عملية الدفع');
+            onCancel: () => {
+                alert('❌ تم إلغاء الدفع');
             },
             
-            onError: (error, paymentId) => {
-                console.error('❌ خطأ في الدفع:', error, 'Payment ID:', paymentId);
+            onError: (error) => {
+                console.error('❌ خطأ في الدفع:', error);
                 alert('❌ فشل الدفع: ' + (error.message || 'خطأ غير معروف'));
             }
         });
 
-        console.log("تم إنشاء الدفع:", payment);
-
     } catch (error) {
-        console.error('❌ خطأ كبير في دالة الدفع:', error);
-        alert('❌ حدث خطأ غير متوقع: ' + error.message);
+        console.error('❌ خطأ في الدفع:', error);
+        alert('❌ حدث خطأ: ' + error.message);
     }
 }
 
