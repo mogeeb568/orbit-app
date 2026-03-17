@@ -1,9 +1,10 @@
+// المهام
 const tasks = [
-    { id: 1, name: "تسجيل الدخول اليومي", points: 5 },
-    { id: 2, name: "فتح لوحة التحكم", points: 5 },
-    { id: 3, name: "دعوة صديق", points: 10 },
-    { id: 4, name: "مشاركة التطبيق", points: 5 },
-    { id: 5, name: "إكمال الملف الشخصي", points: 10 }
+    { name: "تسجيل الدخول اليومي", points: 5 },
+    { name: "إكمال 3 مهام", points: 10 },
+    { name: "دعوة صديق", points: 15 },
+    { name: "مشاركة التطبيق", points: 5 },
+    { name: "تسجيل الدخول بـ Pi", points: 20 }
 ];
 
 // عرض المهام
@@ -15,16 +16,15 @@ function loadTasks() {
     tasks.forEach(task => {
         const li = document.createElement('li');
         li.innerHTML = `${task.name} <span style="color:#ffd700;">+${task.points}</span>`;
-        li.onclick = () => completeTask(task);
+        li.onclick = () => {
+            if (window.addPoints) {
+                window.addPoints(task.points);
+                alert(`✅ +${task.points} نقطة`);
+            }
+        };
         list.appendChild(li);
     });
 }
 
-// إكمال مهمة
-function completeTask(task) {
-    addPoints(task.points);
-    alert(`✅ أكملت المهمة: ${task.name}\nحصلت على +${task.points} نقطة`);
-}
-
-// تحميل المهام عند فتح الصفحة
+// تحميل المهام
 document.addEventListener('DOMContentLoaded', loadTasks);
