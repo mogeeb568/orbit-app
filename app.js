@@ -1,3 +1,4 @@
+// ========== ملف app.js المُحسّن والنهائي ==========
 // ========== المتغيرات العامة ==========
 let points = parseInt(localStorage.getItem('points')) || 0;
 let user = null;
@@ -5,35 +6,38 @@ let user = null;
 // ========== تهيئة Pi SDK ==========
 function initPi() {
     if (typeof Pi !== 'undefined') {
-        Pi.init({ 
-            version: "2.0", 
+        Pi.init({
+            version: "2.0",
             sandbox: true,
             apiKey: "ohrbeexmlhogtkfn2yuw2o8znsdyrwxuexzgbeuimzeojuhqipzogzdpjmvn0zbr"
         });
         console.log('✅ Pi SDK initialized');
     } else {
-        console.log('⚠️ Pi SDK not loaded');
+        console.warn('⚠️ Pi SDK not loaded. Make sure script is included.');
     }
 }
 
+// تشغيل التهيئة عند تحميل الصفحة
 initPi();
 
-function showPage(pageId) {
+// ========== دوال التنقل ==========
+window.showPage = function(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
-}
+    console.log('Navigated to:', pageId);
+};
 
-async function loginWithPi() {
+// ========== دوال تسجيل الدخول ==========
+window.loginWithPi = async function() {
     try {
         console.log("محاولة تسجيل الدخول...");
-        
         if (typeof Pi === 'undefined') {
-            alert('❌ Pi SDK غير متوفر.');
+            alert('❌ Pi SDK غير متوفر. تأكد من اتصالك بالإنترنت.');
             return;
         }
 
-        initPi();
-        
+        initPi(); // تأكد من التهيئة
+
         const auth = await Pi.authenticate(['username'], function(payment) {
             console.log('Payment ready:', payment);
         });
@@ -41,29 +45,32 @@ async function loginWithPi() {
         user = auth.user;
         document.getElementById('user-info').style.display = 'block';
         document.getElementById('username').textContent = user.username;
-        
-        updatePointsDisplay();
-        alert('✅ مرحباً ' + user.username);
 
+        window.updatePointsDisplay(); // تحديث العرض بعد تسجيل الدخول
+        alert('✅ مرحباً ' + user.username);
     } catch (error) {
         console.error('Login error:', error);
         alert('❌ خطأ في تسجيل الدخول: ' + error.message);
     }
-}
+};
 
-function addPoints(amount) {
+// ========== دوال النقاط ==========
+window.addPoints = function(amount) {
     points += amount;
     localStorage.setItem('points', points);
-    updatePointsDisplay();
-    updateLevel();
+    window.updatePointsDisplay();
+    window.updateLevel();
     console.log(`✅ +${amount} نقطة`);
-}
+};
 
-function updatePointsDisplay() {
-    document.getElementById('points').textContent = points;
-    document.getElementById('balance').textContent = points;
-}
+window.updatePointsDisplay = function() {
+    const pointsEl = document.getElementById('points');
+    const balanceEl = document.getElementById('balance');
+    if (pointsEl) pointsEl.textContent = points;
+    if (balanceEl) balanceEl.textContent = points;
+};
 
+// ========== دوال المهام ==========
 const tasks = [
     { id: 1, name: "تسجيل الدخول اليومي", points: 5 },
     { id: 2, name: "إكمال 3 مهام", points: 10 },
@@ -72,7 +79,7 @@ const tasks = [
     { id: 5, name: "تسجيل الدخول بـ Pi", points: 20 }
 ];
 
-function loadTasks() {
+window.loadTasks = function() {
     const taskList = document.getElementById('task-list');
     if (!taskList) return;
 
@@ -83,58 +90,61 @@ function loadTasks() {
             <span>${task.name}</span>
             <span class="task-points">+${task.points}</span>
         `;
-        li.onclick = () => completeTask(task);
+        li.onclick = () => window.completeTask(task);
         taskList.appendChild(li);
     });
-}
+};
 
-function completeTask(task) {
-    addPoints(task.points);
-}
+window.completeTask = function(task) {
+    window.addPoints(task.points);
+};
 
-function updateLevel() {
+// ========== دوال المستويات ==========
+window.updateLevel = function() {
     const level = Math.floor(points / 100) + 1;
     const progress = (points % 100);
-    
-    document.getElementById('level').textContent = level;
-    document.getElementById('next-level').textContent = level + 1;
-    document.getElementById('level-progress').style.width = progress + '%';
-}
+    const levelEl = document.getElementById('level');
+    const nextLevelEl = document.getElementById('next-level');
+    const progressEl = document.getElementById('level-progress');
 
+    if (levelEl) levelEl.textContent = level;
+    if (nextLevelEl) nextLevelEl.textContent = level + 1;
+    if (progressEl) progressEl.style.width = progress + '%';
+};
+
+// ========== دوال الإحالة ==========
 function generateRefCode() {
     const code = 'ORBIT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     localStorage.setItem('refCode', code);
     return code;
 }
 
-function copyRefCode() {
+window.copyRefCode = function() {
     navigator.clipboard.writeText(refCode).then(() => {
         alert('✅ تم نسخ الكود');
     }).catch(() => {
         alert('📋 الكود: ' + refCode);
     });
-}
+};
 
 let refCode = localStorage.getItem('refCode') || generateRefCode();
-document.addEventListener('DOMContentLoaded', () => {
-    const refElement = document.getElementById('ref-code');
-    if (refElement) refElement.textContent = refCode;
-});
 
-function withdrawPoints() {
+// ========== دوال المحفظة ==========
+window.withdrawPoints = function() {
     if (points <= 0) {
         alert('❌ لا يوجد نقاط للسحب');
         return;
     }
     if (confirm(`هل تريد سحب ${points} نقطة؟`)) {
-        alert('💰 تم إرسال طلب السحب.');
+        alert('💰 تم إرسال طلب السحب. سيتم مراجعته قريباً.');
     }
-}
+};
 
-async function makeTestPayment() {
+// ========== دالة الدفع التجريبي (الأهم) ==========
+window.makeTestPayment = async function() {
     try {
         console.log("بدء عملية الدفع...");
-        
+
         if (typeof Pi === 'undefined') {
             alert('❌ Pi SDK غير متوفر.');
             return;
@@ -146,52 +156,52 @@ async function makeTestPayment() {
         }
 
         if (typeof Pi.createPayment !== 'function') {
-            alert('❌ نظام الدفع غير متاح.');
+            alert('❌ نظام الدفع غير متاح. تأكد من إعداد API Key.');
             return;
         }
 
         const paymentData = {
             amount: 0.1,
-            memo: "معاملة تجريبية",
+            memo: "معاملة تجريبية من Orbit App",
             metadata: { user: user.username }
         };
+
+        console.log("بيانات الدفع:", paymentData);
 
         const payment = await Pi.createPayment(paymentData, {
             onReadyForServerApproval: (paymentId) => {
                 console.log('✅ جاهز للموافقة:', paymentId);
-                alert('⏳ جاري الموافقة...');
+                alert('⏳ جاري الموافقة على الدفع...');
             },
             onReadyForServerCompletion: (paymentId, txid) => {
-                console.log('✅ تم الدفع:', paymentId, txid);
+                console.log('✅ تم الإكمال:', paymentId, txid);
                 alert('🎉 تم الدفع التجريبي بنجاح!');
-                addPoints(20);
+                window.addPoints(20);
             },
-            onCancel: () => {
+            onCancel: (paymentId) => {
+                console.log('❌ تم الإلغاء:', paymentId);
                 alert('❌ تم إلغاء الدفع');
             },
-            onError: (error) => {
-                console.error('❌ خطأ في الدفع:', error);
-                alert('❌ فشل الدفع');
+            onError: (error, paymentId) => {
+                console.error('❌ خطأ في الدفع:', error, 'Payment ID:', paymentId);
+                alert('❌ فشل الدفع: ' + (error.message || 'خطأ غير معروف'));
             }
         });
 
-    } catch (error) {
-        console.error('❌ خطأ في الدفع:', error);
-        alert('❌ حدث خطأ');
-    }
-}
+        console.log("تم إنشاء الدفع:", payment);
 
-window.onload = function() {
-    console.log('✅ التطبيق بدأ');
-    updatePointsDisplay();
-    loadTasks();
-    updateLevel();
-    document.getElementById('ref-code').textContent = refCode;
+    } catch (error) {
+        console.error('❌ خطأ كبير في دالة الدفع:', error);
+        alert('❌ حدث خطأ غير متوقع: ' + error.message);
+    }
 };
 
-window.showPage = showPage;
-window.loginWithPi = loginWithPi;
-window.withdrawPoints = withdrawPoints;
-window.copyRefCode = copyRefCode;
-window.makeTestPayment = makeTestPayment;
-window.addPoints = addPoints;
+// ========== تهيئة الصفحة عند التحميل ==========
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ التطبيق بدأ');
+    window.updatePointsDisplay();
+    window.loadTasks();
+    window.updateLevel();
+    const refElement = document.getElementById('ref-code');
+    if (refElement) refElement.textContent = refCode;
+});
