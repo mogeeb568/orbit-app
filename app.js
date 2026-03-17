@@ -53,3 +53,8 @@ function updateLevel() {
 window.showPage = showPage;
 window.login = login;
 window.addPoints = addPoints;
+Pi.init({ 
+    version: "2.0", 
+    sandbox: true,
+    apiKey: "tadyeatucrl016u94vrkhq3rw2e44ogynghm7ziaicbjn1zngkx0e1mkcwbmflpg" // 
+});
